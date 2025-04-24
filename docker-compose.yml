@@ -1,0 +1,41 @@
+# @format
+
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    container_name: task-app-backend
+    volumes:
+      - ./backend:/app
+      - backend_data:/app/data
+    environment:
+      - DATABASE_URL=sqlite:///./data/tasks.db
+      - ENVIRONMENT=development
+    ports:
+      - '8000:8000'
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:8000/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: task-app-frontend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+      - NODE_ENV=development
+    ports:
+      - '3000:80'
+    depends_on:
+      - backend
+
+volumes:
+  backend_data:
