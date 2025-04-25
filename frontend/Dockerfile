@@ -1,5 +1,5 @@
 # Build stage
-FROM node:16-alpine as build
+FROM node:20-alpine AS build
 
 WORKDIR /app
 
@@ -21,11 +21,20 @@ FROM nginx:alpine
 # Copy the build files from the build stage
 COPY --from=build /app/build /usr/share/nginx/html
 
-# Copy the nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Remove the default nginx config
+RUN rm /etc/nginx/conf.d/default.conf
 
-# Expose port 80
-EXPOSE 80
+# Copy our nginx template
+COPY nginx.conf /etc/nginx/conf.d/nginx.conf.template
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Create a proper entrypoint script
+RUN echo '#!/bin/sh' > /docker-entrypoint.sh && \
+    echo 'envsubst "\$PORT \$BACKEND_URL" < /etc/nginx/conf.d/nginx.conf.template > /etc/nginx/conf.d/default.conf' >> /docker-entrypoint.sh && \
+    echo 'nginx -g "daemon off;"' >> /docker-entrypoint.sh && \
+    chmod +x /docker-entrypoint.sh
+
+# Expose port 8080 (default for Cloud Run)
+EXPOSE 8080
+
+# Start nginx with the generated config
+CMD ["/docker-entrypoint.sh"]
