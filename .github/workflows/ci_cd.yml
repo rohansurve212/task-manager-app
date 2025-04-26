@@ -54,7 +54,8 @@ jobs:
 
       - name: Run frontend tests
         run: |
-          cd ./tests/frontend
+          # Run tests from the frontend directory
+          cd frontend
           npm test -- --watchAll=false
 
   deploy:
