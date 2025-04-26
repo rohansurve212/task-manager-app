@@ -31,9 +31,16 @@ jobs:
           # Add repository root to PYTHONPATH
           export PYTHONPATH=$PYTHONPATH:$(pwd)
 
+          # Create test database directory if needed
+          mkdir -p backend/data
+
+          # Set environment variables for testing
+          export DATABASE_URL="sqlite:///:memory:"
+          export ENVIRONMENT="testing"
+
           # Run tests with coverage
-          cd ./tests/backend
-          pytest . --cov=app
+          cd tests/backend
+          pytest . --cov=../../backend/app
 
       - name: Set up Node.js
         uses: actions/setup-node@v3

@@ -1,34 +1,30 @@
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 
 from backend.app.main import app
-from backend.app.database import Base, get_db
-from backend.app.config import settings
+from backend.app.database import get_db
 
-# Create an in-memory SQLite database for testing
-TEST_SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
-engine = create_engine(
-    TEST_SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# Override the database dependency
+@pytest.fixture
+def client(test_db_session):
+    def override_get_db():
+        try:
+            yield test_db_session
+        finally:
+            pass
+    
+    app.dependency_overrides[get_db] = override_get_db
+    with TestClient(app) as client:
+        yield client
+    
+    # Reset the override after the test
+    app.dependency_overrides = {}
 
-# Create the database tables
-Base.metadata.create_all(bind=engine)
-
-# Override the get_db dependency
-def override_get_db():
-    db = TestingSessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-app.dependency_overrides[get_db] = override_get_db
+# Use the client fixture in your tests
+def test_health_check(client):
+    response = client.get("/health")
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}
 
 # Create a test client
 client = TestClient(app)
@@ -46,7 +42,7 @@ def test_health_check():
     assert response.json() == {"status": "ok"}
 
 def test_create_task():
-    response = client.post(f"{settings.API_PREFIX}/tasks", json=test_task)
+    response = client.post("/tasks", json=test_task)
     assert response.status_code == 201
     data = response.json()
     assert data["title"] == test_task["title"]
@@ -60,7 +56,7 @@ def test_create_task():
     return data["id"]
 
 def test_read_tasks():
-    response = client.get(f"{settings.API_PREFIX}/tasks")
+    response = client.get("/tasks")
     assert response.status_code == 200
     assert isinstance(response.json(), list)
     
@@ -76,7 +72,7 @@ def test_read_task():
     else:
         task_id = test_task["id"]
         
-    response = client.get(f"{settings.API_PREFIX}/tasks/{task_id}")
+    response = client.get("/tasks/{task_id}")
     assert response.status_code == 200
     data = response.json()
     assert data["id"] == task_id
@@ -95,7 +91,7 @@ def test_update_task():
         "is_completed": True
     }
     
-    response = client.put(f"{settings.API_PREFIX}/tasks/{task_id}", json=update_data)
+    response = client.put("/tasks/{task_id}", json=update_data)
     assert response.status_code == 200
     data = response.json()
     assert data["id"] == task_id
@@ -110,14 +106,14 @@ def test_delete_task():
     else:
         task_id = test_task["id"]
     
-    response = client.delete(f"{settings.API_PREFIX}/tasks/{task_id}")
+    response = client.delete("/tasks/{task_id}")
     assert response.status_code == 204
     
     # Verify it's gone
-    response = client.get(f"{settings.API_PREFIX}/tasks/{task_id}")
+    response = client.get("/tasks/{task_id}")
     assert response.status_code == 404
 
 def test_read_nonexistent_task():
     # Try to get a task with a non-existent ID
-    response = client.get(f"{settings.API_PREFIX}/tasks/9999")
+    response = client.get("/tasks/9999")
     assert response.status_code == 404
