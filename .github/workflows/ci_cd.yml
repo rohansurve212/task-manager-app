@@ -28,7 +28,7 @@ jobs:
 
       - name: Run backend tests
         run: |
-          cd tests/backend
+          cd ./tests/backend
           pytest tests/ --cov=app
 
       - name: Set up Node.js
@@ -43,7 +43,7 @@ jobs:
 
       - name: Run frontend tests
         run: |
-          cd tests/frontend
+          cd ./tests/frontend
           npm test -- --watchAll=false
 
   deploy:
