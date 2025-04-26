@@ -42,7 +42,7 @@ def test_health_check():
     assert response.json() == {"status": "ok"}
 
 def test_create_task():
-    response = client.post("/tasks", json=test_task)
+    response = client.post("/api/tasks", json=test_task)
     assert response.status_code == 201
     data = response.json()
     assert data["title"] == test_task["title"]
@@ -56,7 +56,7 @@ def test_create_task():
     return data["id"]
 
 def test_read_tasks():
-    response = client.get("/tasks")
+    response = client.get("/api/tasks")
     assert response.status_code == 200
     assert isinstance(response.json(), list)
     
@@ -72,7 +72,7 @@ def test_read_task():
     else:
         task_id = test_task["id"]
         
-    response = client.get("/tasks/{task_id}")
+    response = client.get("/api/tasks/{task_id}")
     assert response.status_code == 200
     data = response.json()
     assert data["id"] == task_id
@@ -91,7 +91,7 @@ def test_update_task():
         "is_completed": True
     }
     
-    response = client.put("/tasks/{task_id}", json=update_data)
+    response = client.put("/api/tasks/{task_id}", json=update_data)
     assert response.status_code == 200
     data = response.json()
     assert data["id"] == task_id
@@ -106,7 +106,7 @@ def test_delete_task():
     else:
         task_id = test_task["id"]
     
-    response = client.delete("/tasks/{task_id}")
+    response = client.delete("/api/tasks/{task_id}")
     assert response.status_code == 204
     
     # Verify it's gone
@@ -115,5 +115,5 @@ def test_delete_task():
 
 def test_read_nonexistent_task():
     # Try to get a task with a non-existent ID
-    response = client.get("/tasks/9999")
+    response = client.get("/api/tasks/9999")
     assert response.status_code == 404
