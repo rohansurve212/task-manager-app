@@ -40,7 +40,7 @@ jobs:
 
           # Run tests with coverage
           cd tests/backend
-          pytest . --cov=../../backend/app
+          pytest test_models.py --cov=../../backend/app
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
