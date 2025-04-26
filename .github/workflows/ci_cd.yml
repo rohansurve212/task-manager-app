@@ -56,6 +56,20 @@ jobs:
         run: |
           # Run tests from the frontend directory
           cd frontend
+
+          # Create jest.config.js to handle ES modules
+          cat > jest.config.js << 'EOF'
+          module.exports = {
+            transform: {
+              "^.+\\.(js|jsx|ts|tsx)$": "babel-jest"
+            },
+            transformIgnorePatterns: [
+              "/node_modules/(?!axios).+\\.js$"
+            ]
+          };
+          EOF
+
+          # Run tests
           npm test -- --watchAll=false
 
   deploy:

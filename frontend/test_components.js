@@ -3,9 +3,9 @@
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
-import TaskForm from '../../frontend/src/components/TaskForm'
-import TaskItem from '../../frontend/src/components/TaskItem'
-import TaskList from '../../frontend/src/components/TaskList'
+import TaskForm from './src/components/TaskForm'
+import TaskItem from './src/components/TaskItem'
+import TaskList from './src/components/TaskList'
 
 // Mock data
 const mockTask = {
