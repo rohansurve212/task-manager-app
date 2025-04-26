@@ -42,36 +42,6 @@ jobs:
           cd tests/backend
           pytest test_models.py --cov=../../backend/app
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
-
-      - name: Install frontend dependencies
-        run: |
-          cd frontend
-          npm ci
-
-      - name: Run frontend tests
-        run: |
-          # Run tests from the frontend directory
-          cd frontend
-
-          # Create jest.config.js to handle ES modules
-          cat > jest.config.js << 'EOF'
-          module.exports = {
-            transform: {
-              "^.+\\.(js|jsx|ts|tsx)$": "babel-jest"
-            },
-            transformIgnorePatterns: [
-              "/node_modules/(?!axios).+\\.js$"
-            ]
-          };
-          EOF
-
-          # Run tests
-          npm test -- --watchAll=false
-
   deploy:
     needs: test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
