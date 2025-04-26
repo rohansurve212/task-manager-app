@@ -28,6 +28,10 @@ jobs:
 
       - name: Run backend tests
         run: |
+          # Add repository root to PYTHONPATH
+          export PYTHONPATH=$PYTHONPATH:$(pwd)
+
+          # Run tests with coverage
           cd ./tests/backend
           pytest . --cov=app
 
